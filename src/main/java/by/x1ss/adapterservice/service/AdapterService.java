@@ -20,6 +20,7 @@ public class AdapterService {
     }
 
     public JuridicalAnswer getJuridicalAnswer(PersonRequest request) {
+        log.info("AdapterService got juridical request {}", request.getValue());
         HttpStatus httpStatus = restTemplate.postForObject("http://localhost:8081/smev/request/juridical/", request.getValue(), HttpStatus.class);
         log.info("AdapterService got juridical post {}", httpStatus);
         if(httpStatus == HttpStatus.OK) {
@@ -33,25 +34,30 @@ public class AdapterService {
                 responseEntity = restTemplate.getForEntity("http://localhost:8081/smev/response/juridical/" + request.getValue(), JuridicalAnswer.class);
             }
             log.info("AdapterService got juridical answer {}", responseEntity.getBody());
-            JuridicalAnswer answer = responseEntity.getBody();
             restTemplate.delete("http://localhost:8081/smev/response/juridical/" + request.getValue() + "/confirm");
-            return answer;
-
+            return responseEntity.getBody();
         }
         return null;
     }
 
     public PhysicalAnswer getPhysicalAnswer(PersonRequest request) {
-        restTemplate.postForLocation("http://localhost:8081/smev/request/physical/", request.getValue());
-        ResponseEntity<?> entity = restTemplate.getForEntity("http://localhost:8081/smev/response/physical", ResponseEntity.class);
-        while (entity.getStatusCodeValue() != 404) {
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+        log.info("AdapterService got physical request {}", request.getValue());
+        HttpStatus httpStatus = restTemplate.postForObject("http://localhost:8081/smev/request/physical/", request.getValue(), HttpStatus.class);
+        log.info("AdapterService got physical post {}", httpStatus);
+        if(httpStatus == HttpStatus.OK) {
+            ResponseEntity<PhysicalAnswer> responseEntity = restTemplate.getForEntity("http://localhost:8081/smev/response/physical/" + request.getValue(), PhysicalAnswer.class);
+            while (responseEntity.getStatusCode() != HttpStatus.OK) {
+                try{
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                responseEntity = restTemplate.getForEntity("http://localhost:8081/smev/response/physical/" + request.getValue(), PhysicalAnswer.class);
             }
-            entity = restTemplate.getForEntity("http://localhost:8081/smev/response/physical", ResponseEntity.class);
+            log.info("AdapterService got juridical answer {}", responseEntity.getBody());
+            restTemplate.delete("http://localhost:8081/smev/response/physical/" + request.getValue() + "/confirm");
+            return responseEntity.getBody();
         }
-        return (PhysicalAnswer) entity.getBody();
+        return null;
     }
 }
