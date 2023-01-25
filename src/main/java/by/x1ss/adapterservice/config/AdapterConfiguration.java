@@ -10,4 +10,5 @@ public class AdapterConfiguration {
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
+
 }

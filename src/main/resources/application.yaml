@@ -1,0 +1,8 @@
+server:
+  port: 8080
+application:
+  link:
+    physicalRequest: http://localhost:8081/smev/request/physical/
+    juridicalRequest: http://localhost:8081/smev/request/juridical/
+    physicalGetAnswer: http://localhost:8081/smev/response/physical/
+    juridicalGetAnswer: http://localhost:8081/smev/response/juridical/
