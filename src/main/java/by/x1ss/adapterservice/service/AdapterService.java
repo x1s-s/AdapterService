@@ -3,7 +3,7 @@ package by.x1ss.adapterservice.service;
 import by.x1ss.adapterservice.configuration.LinksToOtherService;
 import by.x1ss.adapterservice.model.answer.JuridicalAnswer;
 import by.x1ss.adapterservice.model.answer.PhysicalAnswer;
-import by.x1ss.adapterservice.model.request.PersonRequest;
+import by.x1ss.adapterservice.model.request.Request;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,43 +20,45 @@ public class AdapterService {
     private RestTemplate restTemplate;
 
 
-    public JuridicalAnswer getJuridicalAnswer(PersonRequest request) {
-        log.info("AdapterService got juridical request {}", request.getValue());
-        HttpStatus httpStatus = restTemplate.postForObject(links.getJuridicalRequest(), request.getValue(), HttpStatus.class);
+    public JuridicalAnswer getJuridicalAnswer(String inn) {
+        Request request = new Request(inn, true);
+        log.info("AdapterService got juridical request {}", request);
+        HttpStatus httpStatus = restTemplate.postForObject(links.getRequest(), request, HttpStatus.class);
         log.info("AdapterService got juridical post {}", httpStatus);
         if (httpStatus == HttpStatus.PROCESSING) {
-            ResponseEntity<JuridicalAnswer> responseEntity = restTemplate.getForEntity(links.getJuridicalGetAnswer() + request.getValue(), JuridicalAnswer.class);
+            ResponseEntity<JuridicalAnswer> responseEntity = restTemplate.getForEntity(links.getJuridicalGetAnswer() + request.getUuid(), JuridicalAnswer.class);
             while (responseEntity.getStatusCode() != HttpStatus.OK || responseEntity.getBody() == null) {
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                responseEntity = restTemplate.getForEntity(links.getJuridicalGetAnswer() + request.getValue(), JuridicalAnswer.class);
+                responseEntity = restTemplate.getForEntity(links.getJuridicalGetAnswer() + request.getUuid(), JuridicalAnswer.class);
             }
             log.info("AdapterService got juridical answer {}", responseEntity.getBody());
-            restTemplate.delete(links.getJuridicalGetAnswer() + request.getValue() + "/confirm");
+            restTemplate.delete(links.getJuridicalConfirm() + request.getUuid());
             return responseEntity.getBody();
         }
         return null;
     }
 
-    public PhysicalAnswer getPhysicalAnswer(PersonRequest request) {
-        log.info("AdapterService got physical request {}", request.getValue());
-        HttpStatus httpStatus = restTemplate.postForObject(links.getPhysicalRequest(), request.getValue(), HttpStatus.class);
+    public PhysicalAnswer getPhysicalAnswer(String sts) {
+        Request request = new Request(sts, false);
+        log.info("AdapterService got physical request {}", request.getStr());
+        HttpStatus httpStatus = restTemplate.postForObject(links.getRequest(), request, HttpStatus.class);
         log.info("AdapterService got physical post {}", httpStatus);
         if (httpStatus == HttpStatus.PROCESSING) {
-            ResponseEntity<PhysicalAnswer> responseEntity = restTemplate.getForEntity(links.getPhysicalGetAnswer() + request.getValue(), PhysicalAnswer.class);
+            ResponseEntity<PhysicalAnswer> responseEntity = restTemplate.getForEntity(links.getPhysicalGetAnswer() + request.getUuid(), PhysicalAnswer.class);
             while (responseEntity.getStatusCode() != HttpStatus.OK || responseEntity.getBody() == null) {
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                responseEntity = restTemplate.getForEntity(links.getPhysicalGetAnswer() + request.getValue(), PhysicalAnswer.class);
+                responseEntity = restTemplate.getForEntity(links.getPhysicalGetAnswer() + request.getUuid(), PhysicalAnswer.class);
             }
             log.info("AdapterService got physical answer {}", responseEntity.getBody());
-            restTemplate.delete(links.getPhysicalGetAnswer() + request.getValue() + "/confirm");
+            restTemplate.delete(links.getPhysicalConfirm() + request.getUuid());
             return responseEntity.getBody();
         }
         return null;

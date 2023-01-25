@@ -12,8 +12,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @AllArgsConstructor
 @NoArgsConstructor
 public class LinksToOtherService {
-    private String physicalRequest;
-    private String juridicalRequest;
+    private String request;
     private String physicalGetAnswer;
     private String juridicalGetAnswer;
+    private String physicalConfirm;
+    private String juridicalConfirm;
 }

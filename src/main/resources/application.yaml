@@ -2,7 +2,8 @@ server:
   port: 8080
 application:
   link:
-    physicalRequest: http://localhost:8081/smev/request/physical/
-    juridicalRequest: http://localhost:8081/smev/request/juridical/
+    request: http://localhost:8081/smev/request/put/
     physicalGetAnswer: http://localhost:8081/smev/response/physical/
     juridicalGetAnswer: http://localhost:8081/smev/response/juridical/
+    physicalConfirm: http://localhost:8081/smev/response/physical/confirm/
+    juridicalConfirm: http://localhost:8081/smev/response/juridical/confirm/
