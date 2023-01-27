@@ -3,7 +3,5 @@ server:
 application:
   link:
     request: http://localhost:8081/smev/request/put/
-    physicalGetAnswer: http://localhost:8081/smev/response/physical/
-    juridicalGetAnswer: http://localhost:8081/smev/response/juridical/
-    physicalConfirm: http://localhost:8081/smev/response/physical/confirm/
-    juridicalConfirm: http://localhost:8081/smev/response/juridical/confirm/
+    getAnswer: http://localhost:8081/smev/response/
+    confirm: http://localhost:8081/smev/response/confirm/
