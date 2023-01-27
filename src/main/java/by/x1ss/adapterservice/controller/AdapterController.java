@@ -1,7 +1,5 @@
 package by.x1ss.adapterservice.controller;
 
-import by.x1ss.adapterservice.model.answer.JuridicalAnswer;
-import by.x1ss.adapterservice.model.answer.PhysicalAnswer;
 import by.x1ss.adapterservice.service.AdapterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,19 +16,11 @@ public class AdapterController {
 
     @GetMapping("/answer/juridical/{inn}")
     public ResponseEntity<?> getJuridicalAnswer(@PathVariable String inn) {
-        JuridicalAnswer answer = adapterService.getJuridicalAnswer(inn);
-        if(answer != null) {
-            return ResponseEntity.ok(answer);
-        }
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(adapterService.getResponse(inn, true));
     }
 
     @GetMapping("/answer/physical/{sts}")
     public ResponseEntity<?> getPhysicalAnswer(@PathVariable String sts) {
-        PhysicalAnswer answer = adapterService.getPhysicalAnswer(sts);
-        if(answer != null) {
-            return ResponseEntity.ok(answer);
-        }
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(adapterService.getResponse(sts, false));
     }
 }
