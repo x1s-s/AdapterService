@@ -15,4 +15,5 @@ public class LinksToOtherService {
     private String request;
     private String getAnswer;
     private String confirm;
+    private String status;
 }

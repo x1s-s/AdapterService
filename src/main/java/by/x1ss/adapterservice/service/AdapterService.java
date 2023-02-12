@@ -22,6 +22,11 @@ public class AdapterService {
     public Response getResponse(String clientIdentifier, Boolean isJuridical){
         Request request = new Request(clientIdentifier, isJuridical);
         log.info("AdapterService got request {}", request);
+        ResponseEntity<String> status = restTemplate.getForEntity(links.getStatus(), String.class);
+        log.info("AdapterService got status {}", status.getBody());
+        if(status.getStatusCode() != HttpStatus.OK){
+            throw new SmevEcxeption("SMEV service is down", status.getStatusCode());
+        }
         HttpStatus httpStatus = restTemplate.postForObject(links.getRequest(), request, HttpStatus.class);
         log.info("AdapterService got post {}", httpStatus);
         if (httpStatus == HttpStatus.PROCESSING) {
@@ -30,14 +35,18 @@ public class AdapterService {
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    log.error("AdapterService sleep error (interrupted)", e);
                 }
                 responseEntity = restTemplate.getForEntity(links.getGetAnswer() + request.getUuid(), Response.class);
             }
             log.info("AdapterService got response {}", responseEntity.getBody());
             return responseEntity.getBody();
         } else {
-            throw new SmevEcxeption("Smev service exception", httpStatus );
+            if(request.getIsJuridical()){
+                throw new SmevEcxeption("SMEV service cant find company with this inn", HttpStatus.BAD_REQUEST);
+            } else {
+                throw new SmevEcxeption("SMEV service cant find person with this sts", HttpStatus.BAD_REQUEST);
+            }
         }
     }
 
