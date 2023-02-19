@@ -122,8 +122,11 @@ class AdapterServiceApplicationTests {
     }
 
     @Test
-    void testValidation(){
+    void testValidation() {
         assertThrows(ConstraintViolationException.class, () -> adapterController.getJuridicalAnswer("123456789"));
+        assertThrows(ConstraintViolationException.class, () -> adapterController.getJuridicalAnswer("12345678009"));
+        assertThrows(ConstraintViolationException.class, () -> adapterController.getPhysicalAnswer("А111АА00000"));
+        assertThrows(ConstraintViolationException.class, () -> adapterController.getPhysicalAnswer("ААА00000"));
     }
 
     @Test
