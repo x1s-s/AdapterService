@@ -22,7 +22,7 @@ public class AdapterController {
     public ResponseEntity<?> getJuridicalAnswer(@PathVariable
                                                     @Pattern(regexp = "^[\\d+]{10}$", message = "Incorrect inn")
                                                     String inn) {
-        return ResponseEntity.ok(adapterService.getResponse(inn, true));
+        return ResponseEntity.ok(adapterService.getAnswer(inn, true));
     }
 
     @GetMapping("/answer/physical/{sts}")
@@ -30,6 +30,6 @@ public class AdapterController {
                                                    @Pattern(regexp = "^[АВЕКМНОРСТУХ]\\d{3}(?<!000)[АВЕКМНОРСТУХ]{2}\\d{2,3}$",
                                                            message = "Incorrect sts")
                                                    String sts) {
-        return ResponseEntity.ok(adapterService.getResponse(sts, false));
+        return ResponseEntity.ok(adapterService.getAnswer(sts, false));
     }
 }
