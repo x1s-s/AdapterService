@@ -122,11 +122,51 @@ class AdapterServiceApplicationTests {
     }
 
     @Test
-    void testValidation() {
+    void testValidationJuridical() {
+        mockServer.expect(once(), requestTo(matchesPattern(links.getGetAnswer()+"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(
+                                "{" +
+                                        "\"clientIdentifier\": \"А111АА00\",\n" +
+                                        "\"accrualAmount\": 2.064621441E9,\n" +
+                                        "\"amountPay\": 2.064621441E9,\n" +
+                                        "\"resolutionNumber\": 2.064621441E9,\n" +
+                                        "\"resolutionDate\": \"+169104628-12-09\",\n" +
+                                        "\"administrativeCode\": \"2.064621441E9\"\n" +
+                                        "}"));
+        mockServer.expect(once(), requestTo(matchesPattern(links.getConfirm()+"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.DELETE))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK));
         assertThrows(ConstraintViolationException.class, () -> adapterController.getJuridicalAnswer("123456789"));
         assertThrows(ConstraintViolationException.class, () -> adapterController.getJuridicalAnswer("12345678009"));
+        adapterController.getJuridicalAnswer("1234567890");
+        mockServer.verify();
+    }
+
+    @Test
+    void testValidationPhysical(){
+        mockServer.expect(once(), requestTo(matchesPattern(links.getGetAnswer()+"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(
+                                "{" +
+                                        "\"clientIdentifier\": \"А111АА00\",\n" +
+                                        "\"accrualAmount\": 2.064621441E9,\n" +
+                                        "\"amountPay\": 2.064621441E9,\n" +
+                                        "\"resolutionNumber\": 2.064621441E9,\n" +
+                                        "\"resolutionDate\": \"+169104628-12-09\",\n" +
+                                        "\"administrativeCode\": \"2.064621441E9\"\n" +
+                                        "}"));
+        mockServer.expect(once(), requestTo(matchesPattern(links.getConfirm()+"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.DELETE))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK));
         assertThrows(ConstraintViolationException.class, () -> adapterController.getPhysicalAnswer("А111АА00000"));
         assertThrows(ConstraintViolationException.class, () -> adapterController.getPhysicalAnswer("ААА00000"));
+        adapterController.getPhysicalAnswer("А111АА00");
+        mockServer.verify();
     }
 
     @Test

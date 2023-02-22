@@ -1,5 +1,6 @@
 package by.x1ss.adapterservice.service;
 
+import by.x1ss.adapterservice.aop.ConnectionCheckAnnotation;
 import by.x1ss.adapterservice.configuration.LinksToOtherService;
 import by.x1ss.adapterservice.exception.SmevEcxeption;
 import by.x1ss.adapterservice.model.Request;
@@ -26,10 +27,10 @@ public class AdapterServiceImpl implements AdapterService {
     }
 
 
+    @ConnectionCheckAnnotation
     public Response getAnswer(String clientIdentifier, Boolean isJuridical){
         Request request = new Request(clientIdentifier, isJuridical);
         log.info("AdapterService got request {}", request);
-        checkServerStatus();
         ResponseEntity<?> responseStatus = restTemplate.postForEntity(links.getRequest(), request, ResponseEntity.class);
         log.info("AdapterService got post {}", responseStatus);
         if (responseStatus.getStatusCode() == HttpStatus.ACCEPTED) {
@@ -44,14 +45,6 @@ public class AdapterServiceImpl implements AdapterService {
             } else {
                 throw new SmevEcxeption("SMEV service cant find person with this sts", HttpStatus.BAD_REQUEST);
             }
-        }
-    }
-
-    private void checkServerStatus(){
-        ResponseEntity<String> status = restTemplate.getForEntity(links.getStatus(), String.class);
-        log.info("AdapterService got status {}", status.getBody());
-        if(status.getStatusCode() != HttpStatus.OK && status.getBody() != null  && !status.getBody().contains("UP")){
-            throw new SmevEcxeption("SMEV service is down", status.getStatusCode());
         }
     }
 
