@@ -6,3 +6,5 @@ application:
     getAnswer: http://localhost:8081/smev/response/
     confirm: http://localhost:8081/smev/response/confirm/
     status: http://localhost:8081/actuator/health
+pom:
+  version: @project.version@
