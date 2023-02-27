@@ -9,6 +9,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 @Aspect
@@ -29,10 +30,17 @@ public class ConnectionCheck {
 
     @Before("callCheckConnectionAnnotation()")
     public void beforeAnnotation() {
-        ResponseEntity<String> status = restTemplate.getForEntity(links.getStatus(), String.class);
-        log.info("AdapterService got status from SMEV service {}", status.getBody());
-        if (status.getStatusCode() != HttpStatus.OK && status.getBody() != null && !status.getBody().contains("UP")) {
-            throw new SmevEcxeption("SMEV service is down", status.getStatusCode());
+        try {
+            log.info("AdapterService try to get response from SEMV service");
+            ResponseEntity<String> status = restTemplate.getForEntity(links.getStatus(), String.class);
+            log.info("AdapterService got status from SMEV service {}", status.getBody());
+            if (status.getStatusCode() != HttpStatus.OK && status.getBody() != null && !status.getBody().contains("UP")) {
+                log.warn("SMEW service isn't up {}", status);
+                throw new SmevEcxeption("SMEV service isn't up", status.getStatusCode());
+            }
+        } catch (RestClientException e){
+            log.warn("SMEV service isn't response");
+            throw new SmevEcxeption("SMEV service isn't response", HttpStatus.SERVICE_UNAVAILABLE);
         }
 
     }
