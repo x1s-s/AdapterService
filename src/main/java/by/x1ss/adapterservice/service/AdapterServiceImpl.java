@@ -2,6 +2,7 @@ package by.x1ss.adapterservice.service;
 
 import by.x1ss.adapterservice.aop.ConnectionCheckAnnotation;
 import by.x1ss.adapterservice.configuration.LinksToOtherService;
+import by.x1ss.adapterservice.exception.NotFoundInSmevException;
 import by.x1ss.adapterservice.exception.SmevEcxeption;
 import by.x1ss.adapterservice.model.Request;
 import by.x1ss.adapterservice.model.Response;
@@ -50,7 +51,13 @@ public class AdapterServiceImpl implements AdapterService {
 
     private ResponseEntity<Response> getResponse(UUID uuid){
         ResponseEntity<Response> responseEntity = restTemplate.getForEntity(links.getGetAnswer() + uuid, Response.class);
-        while (responseEntity.getStatusCode() != HttpStatus.OK || responseEntity.getBody() == null) {
+        while (true) {
+            if (responseEntity.getStatusCode() == HttpStatus.OK && responseEntity.getBody() != null){
+                return responseEntity;
+            }
+            if(responseEntity.getStatusCode() == HttpStatus.NO_CONTENT){
+                throw new NotFoundInSmevException();
+            }
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -58,7 +65,6 @@ public class AdapterServiceImpl implements AdapterService {
             }
             responseEntity = restTemplate.getForEntity(links.getGetAnswer() + uuid, Response.class);
         }
-        return responseEntity;
     }
 
 }

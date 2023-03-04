@@ -24,4 +24,9 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<Object> handleHttpClientErrorException(HttpClientErrorException e) {
         return ResponseEntity.status(e.getStatusCode()).body("Incorrect request to SMEV service");
     }
+
+    @ExceptionHandler(NotFoundInSmevException.class)
+    public ResponseEntity<String> handleNotFoundInSmevException(){
+        return ResponseEntity.badRequest().body("Not found penalty with this client identifier");
+    }
 }
