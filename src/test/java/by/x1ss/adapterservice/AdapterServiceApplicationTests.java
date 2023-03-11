@@ -1,7 +1,12 @@
 package by.x1ss.adapterservice;
 
+import by.x1ss.adapterservice.DTO.ResponseList;
 import by.x1ss.adapterservice.configuration.LinksToOtherService;
 import by.x1ss.adapterservice.controller.AdapterController;
+import by.x1ss.adapterservice.model.Response;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +27,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.web.client.RestTemplate;
 
 import javax.validation.ConstraintViolationException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -46,96 +54,268 @@ class AdapterServiceApplicationTests {
     private MockRestServiceServer mockServer;
 
     @Autowired
+    private XmlMapper xmlMapper;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+
+    @Autowired
     private AdapterController adapterController;
 
     @BeforeEach
     public void createMock() {
         mockServer = MockRestServiceServer.createServer(restTemplate);
+    }
+
+
+    @Test
+    void integrationPositiveTestJuridicalXML() throws Exception {
+        ResponseList responseList = new ResponseList();
+        List<Response> responses = new ArrayList<>();
+        responses.add(
+                Response.builder()
+                        .clientIdentifier("1234567890")
+                        .accrualAmount(2.5)
+                        .amountPay(2)
+                        .resolutionNumber(1234)
+                        .resolutionDate(LocalDate.of(2023, 2, 2))
+                        .administrativeCode("123")
+                        .isJuridical(true)
+                        .build()
+        );
+        responses.add(
+                Response.builder()
+                        .clientIdentifier("1234567890")
+                        .accrualAmount(4.5)
+                        .amountPay(4)
+                        .resolutionNumber(4)
+                        .resolutionDate(LocalDate.of(2023, 4, 4))
+                        .administrativeCode("4")
+                        .isJuridical(true)
+                        .build()
+        );
+        responseList.setResponses(responses);
         mockServer.expect(once(), requestTo(links.getStatus()))
                 .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
-                .andRespond(MockRestResponseCreators
-                        .withStatus(HttpStatus.OK)
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
+                        .contentType(MediaType.APPLICATION_JSON)
                         .body("{\"status\":\"UP\"}"));
         mockServer.expect(once(), requestTo(links.getRequest()))
                 .andExpect(MockRestRequestMatchers.method(HttpMethod.POST))
                 .andRespond(MockRestResponseCreators.withStatus(HttpStatus.ACCEPTED));
-    }
-
-
-    @Test
-    void integrationTestJuridical() throws Exception {
-        mockServer.expect(once(), requestTo(matchesPattern(links.getGetAnswer()+"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")))
+        mockServer.expect(once(), requestTo(matchesPattern(links.getGetAnswer() + ".*")))
                 .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
                 .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
                         .contentType(MediaType.APPLICATION_XML)
-                        .body("<Response>\n" +
-                                "\t<clientIdentifier>1234567890</clientIdentifier>\n" +
-                                "\t<accrualAmount>2.5</accrualAmount>\n" +
-                                "\t<amountPay>2.0</amountPay>\n" +
-                                "\t<resolutionNumber>1234.0</resolutionNumber>\n" +
-                                "\t<resolutionDate>2023-02-02</resolutionDate>\n" +
-                                "\t<administrativeCode>123</administrativeCode>\n" +
-                                "</Response>"));
-        mockServer.expect(once(), requestTo(matchesPattern(links.getConfirm()+"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")))
+                        .body(xmlMapper.writeValueAsString(responseList)));
+        mockServer.expect(once(), requestTo(matchesPattern(links.getConfirm() + ".*")))
                 .andExpect(MockRestRequestMatchers.method(HttpMethod.DELETE))
                 .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK));
-        mockMvc.perform(MockMvcRequestBuilders.request(HttpMethod.GET, "http://localhost:8080/adapter/answer/juridical/1234567890"))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.xpath("Response/clientIdentifier").string("1234567890"))
-                .andExpect(MockMvcResultMatchers.xpath("Response/accrualAmount").number(2.5))
-                .andExpect(MockMvcResultMatchers.xpath("Response/amountPay").number(2.0))
-                .andExpect(MockMvcResultMatchers.xpath("Response/resolutionNumber").number(1234.0))
-                .andExpect(MockMvcResultMatchers.xpath("Response/resolutionDate").string("2023-02-02"))
-                .andExpect(MockMvcResultMatchers.xpath("Response/administrativeCode").string("123"));
-        mockServer.verify();
-
-    }
-
-    @Test
-    void integrationTestPhysical() throws Exception{
-        mockServer.expect(once(), requestTo(matchesPattern(links.getGetAnswer()+"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")))
-                .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
-                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
+        mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/adapter/answer/juridical")
+                        .content("1234567890")
                         .contentType(MediaType.APPLICATION_XML)
-                        .body("<Response>\n" +
-                                "\t<clientIdentifier>А111АА00</clientIdentifier>\n" +
-                                "\t<accrualAmount>5.5</accrualAmount>\n" +
-                                "\t<amountPay>5.0</amountPay>\n" +
-                                "\t<resolutionNumber>56789.0</resolutionNumber>\n" +
-                                "\t<resolutionDate>2021-01-01</resolutionDate>\n" +
-                                "\t<administrativeCode>456</administrativeCode>\n" +
-                                "</Response>"));
-        mockServer.expect(once(), requestTo(matchesPattern(links.getConfirm()+"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")))
-                .andExpect(MockRestRequestMatchers.method(HttpMethod.DELETE))
-                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK));
-        mockMvc.perform(MockMvcRequestBuilders.request(HttpMethod.GET, "http://localhost:8080/adapter/answer/physical").content("<inn>А111АА00</inn>"))
+                        .accept(MediaType.APPLICATION_XML))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.xpath("Response/clientIdentifier").string("А111АА00"))
-                .andExpect(MockMvcResultMatchers.xpath("Response/accrualAmount").number(5.5))
-                .andExpect(MockMvcResultMatchers.xpath("Response/amountPay").number(5.0))
-                .andExpect(MockMvcResultMatchers.xpath("Response/resolutionNumber").number(56789.0))
-                .andExpect(MockMvcResultMatchers.xpath("Response/resolutionDate").string("2021-01-01"))
-                .andExpect(MockMvcResultMatchers.xpath("Response/administrativeCode").string("456"));
-
+                .andExpect(MockMvcResultMatchers.content().xml(xmlMapper.writeValueAsString(responseList)));
         mockServer.verify();
     }
 
     @Test
-    void testValidationJuridical() {
-        mockServer.expect(once(), requestTo(matchesPattern(links.getGetAnswer()+"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")))
+    void integrationPositiveTestJuridicalJSON() throws Exception {
+        ResponseList responseList = new ResponseList();
+        List<Response> responses = new ArrayList<>();
+        responses.add(
+                Response.builder()
+                        .clientIdentifier("1234567890")
+                        .accrualAmount(2.5)
+                        .amountPay(2)
+                        .resolutionNumber(1234)
+                        .resolutionDate(LocalDate.of(2023, 2, 2))
+                        .administrativeCode("123")
+                        .isJuridical(true)
+                        .build()
+        );
+        responses.add(
+                Response.builder()
+                        .clientIdentifier("1234567890")
+                        .accrualAmount(4.5)
+                        .amountPay(4)
+                        .resolutionNumber(4)
+                        .resolutionDate(LocalDate.of(2023, 4, 4))
+                        .administrativeCode("4")
+                        .isJuridical(true)
+                        .build()
+        );
+        responseList.setResponses(responses);
+        System.out.println(objectMapper.writeValueAsString(responseList));
+        mockServer.expect(once(), requestTo(links.getStatus()))
                 .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
                 .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .body(
-                                "{" +
-                                        "\"clientIdentifier\": \"А111АА00\",\n" +
-                                        "\"accrualAmount\": 2.064621441E9,\n" +
-                                        "\"amountPay\": 2.064621441E9,\n" +
-                                        "\"resolutionNumber\": 2.064621441E9,\n" +
-                                        "\"resolutionDate\": \"+169104628-12-09\",\n" +
-                                        "\"administrativeCode\": \"2.064621441E9\"\n" +
-                                        "}"));
-        mockServer.expect(once(), requestTo(matchesPattern(links.getConfirm()+"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")))
+                        .body("{\"status\":\"UP\"}"));
+        mockServer.expect(once(), requestTo(links.getRequest()))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.POST))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.ACCEPTED));
+        mockServer.expect(once(), requestTo(matchesPattern(links.getGetAnswer() + ".*")))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper.writeValueAsString(responseList)));
+        mockServer.expect(once(), requestTo(matchesPattern(links.getConfirm() + ".*")))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.DELETE))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK));
+        mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/adapter/answer/juridical")
+                        .content("1234567890")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json(objectMapper.writeValueAsString(responseList)));
+        mockServer.verify();
+    }
+
+    @Test
+    void integrationPositiveTestPhysicalXML() throws Exception {
+        ResponseList responseList = new ResponseList();
+        List<Response> responses = new ArrayList<>();
+        responses.add(
+                Response.builder()
+                        .clientIdentifier("А111АА00")
+                        .accrualAmount(5.5)
+                        .amountPay(5)
+                        .resolutionNumber(56789)
+                        .resolutionDate(LocalDate.of(2021, 1, 1))
+                        .administrativeCode("456")
+                        .isJuridical(false)
+                        .build()
+        );
+        responseList.setResponses(responses);
+        mockServer.expect(once(), requestTo(links.getStatus()))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"status\":\"UP\"}"));
+        mockServer.expect(once(), requestTo(links.getRequest()))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.POST))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.ACCEPTED));
+        mockServer.expect(once(), requestTo(matchesPattern(links.getGetAnswer() + ".*")))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
+                        .contentType(MediaType.APPLICATION_XML)
+                        .body(xmlMapper.writeValueAsString(responseList)));
+        mockServer.expect(once(), requestTo(matchesPattern(links.getConfirm() + ".*")))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.DELETE))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK));
+        mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/adapter/answer/physical")
+                        .content("А111АА00")
+                        .contentType(MediaType.APPLICATION_XML)
+                        .accept(MediaType.APPLICATION_XML))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().xml(xmlMapper.writeValueAsString(responseList)));
+    }
+
+    @Test
+    void integrationPositiveTestPhysicalJSON() throws Exception {
+        ResponseList responseList = new ResponseList();
+        List<Response> responses = new ArrayList<>();
+        responses.add(
+                Response.builder()
+                        .clientIdentifier("А111АА00")
+                        .accrualAmount(5.5)
+                        .amountPay(5)
+                        .resolutionNumber(56789)
+                        .resolutionDate(LocalDate.of(2021, 1, 1))
+                        .administrativeCode("456")
+                        .isJuridical(false)
+                        .build()
+        );
+        responseList.setResponses(responses);
+        mockServer.expect(once(), requestTo(links.getStatus()))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"status\":\"UP\"}"));
+        mockServer.expect(once(), requestTo(links.getRequest()))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.POST))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.ACCEPTED));
+        mockServer.expect(once(), requestTo(matchesPattern(links.getGetAnswer() + ".*")))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper.writeValueAsString(responseList)));
+        mockServer.expect(once(), requestTo(matchesPattern(links.getConfirm() + ".*")))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.DELETE))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK));
+        mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/adapter/answer/physical")
+                        .content("А111АА00")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json(objectMapper.writeValueAsString(responseList)));
+    }
+
+    @Test
+    void integrationNegativeTestServiceUnavailable() throws Exception {
+        mockServer.expect(once(), requestTo(links.getStatus()))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.SERVICE_UNAVAILABLE));
+        mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/adapter/answer/physical")
+                        .content("А111АА00")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isServiceUnavailable());
+    }
+
+    @Test
+    void integrationNegativeTestNoContent() throws Exception {
+        mockServer.expect(once(), requestTo(links.getStatus()))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"status\":\"UP\"}"));
+        mockServer.expect(once(), requestTo(links.getRequest()))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.POST))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.ACCEPTED));
+        mockServer.expect(once(), requestTo(matchesPattern(links.getGetAnswer() + ".*")))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.NO_CONTENT));
+        mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/adapter/answer/physical")
+                        .content("А111АА00")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+    }
+
+    @Test
+    void testValidationJuridical() throws JsonProcessingException {
+        ResponseList responseList = new ResponseList();
+        List<Response> responses = new ArrayList<>();
+        responses.add(
+                Response.builder()
+                        .clientIdentifier("1234567890")
+                        .accrualAmount(2.5)
+                        .amountPay(2)
+                        .resolutionNumber(1234)
+                        .resolutionDate(LocalDate.of(2023, 2, 2))
+                        .administrativeCode("123")
+                        .isJuridical(true)
+                        .build()
+        );
+        responseList.setResponses(responses);
+        mockServer.expect(once(), requestTo(links.getStatus()))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"status\":\"UP\"}"));
+        mockServer.expect(once(), requestTo(links.getRequest()))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.POST))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.ACCEPTED));
+        mockServer.expect(once(), requestTo(matchesPattern(links.getGetAnswer() + ".*")))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper.writeValueAsString(responseList)));
+        mockServer.expect(once(), requestTo(matchesPattern(links.getConfirm() + ".*")))
                 .andExpect(MockRestRequestMatchers.method(HttpMethod.DELETE))
                 .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK));
         assertThrows(ConstraintViolationException.class, () -> adapterController.getJuridicalAnswer("123456789"));
@@ -145,21 +325,35 @@ class AdapterServiceApplicationTests {
     }
 
     @Test
-    void testValidationPhysical(){
-        mockServer.expect(once(), requestTo(matchesPattern(links.getGetAnswer()+"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")))
+    void testValidationPhysical() throws JsonProcessingException {
+        ResponseList responseList = new ResponseList();
+        List<Response> responses = new ArrayList<>();
+        responses.add(
+                Response.builder()
+                        .clientIdentifier("А111АА00")
+                        .accrualAmount(5.5)
+                        .amountPay(5)
+                        .resolutionNumber(56789)
+                        .resolutionDate(LocalDate.of(2021, 1, 1))
+                        .administrativeCode("456")
+                        .isJuridical(false)
+                        .build()
+        );
+        responseList.setResponses(responses);
+        mockServer.expect(once(), requestTo(links.getStatus()))
                 .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
                 .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .body(
-                                "{" +
-                                        "\"clientIdentifier\": \"А111АА00\",\n" +
-                                        "\"accrualAmount\": 2.064621441E9,\n" +
-                                        "\"amountPay\": 2.064621441E9,\n" +
-                                        "\"resolutionNumber\": 2.064621441E9,\n" +
-                                        "\"resolutionDate\": \"+169104628-12-09\",\n" +
-                                        "\"administrativeCode\": \"2.064621441E9\"\n" +
-                                        "}"));
-        mockServer.expect(once(), requestTo(matchesPattern(links.getConfirm()+"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")))
+                        .body("{\"status\":\"UP\"}"));
+        mockServer.expect(once(), requestTo(links.getRequest()))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.POST))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.ACCEPTED));
+        mockServer.expect(once(), requestTo(matchesPattern(links.getGetAnswer() + ".*")))
+                .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
+                .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper.writeValueAsString(responseList)));
+        mockServer.expect(once(), requestTo(matchesPattern(links.getConfirm() + ".*")))
                 .andExpect(MockRestRequestMatchers.method(HttpMethod.DELETE))
                 .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK));
         assertThrows(ConstraintViolationException.class, () -> adapterController.getPhysicalAnswer("А111АА00000"));

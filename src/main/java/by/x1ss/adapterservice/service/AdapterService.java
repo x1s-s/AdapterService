@@ -1,7 +1,7 @@
 package by.x1ss.adapterservice.service;
 
-import by.x1ss.adapterservice.model.Response;
+import by.x1ss.adapterservice.DTO.ResponseList;
 
 public interface AdapterService {
-    Response getAnswer(String clientIdentifier, Boolean isJuridical);
+    ResponseList getAnswer(String clientIdentifier, Boolean isJuridical);
 }
