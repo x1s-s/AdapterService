@@ -1,6 +1,5 @@
-package by.x1ss.adapterservice.DTO;
+package by.x1ss.adapterservice.domain.object;
 
-import by.x1ss.adapterservice.model.Response;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

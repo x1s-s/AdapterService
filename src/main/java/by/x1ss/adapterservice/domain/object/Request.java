@@ -1,4 +1,4 @@
-package by.x1ss.adapterservice.model;
+package by.x1ss.adapterservice.domain.object;
 
 import lombok.Getter;
 import lombok.ToString;

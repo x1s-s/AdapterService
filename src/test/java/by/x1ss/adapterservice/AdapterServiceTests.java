@@ -1,9 +1,10 @@
 package by.x1ss.adapterservice;
 
-import by.x1ss.adapterservice.DTO.ResponseList;
-import by.x1ss.adapterservice.configuration.LinksToOtherService;
-import by.x1ss.adapterservice.controller.AdapterController;
-import by.x1ss.adapterservice.model.Response;
+import by.x1ss.adapterservice.domain.logic.interactionWithSMEV.service.configuration.propertiesConfig.LinksToOtherService;
+import by.x1ss.adapterservice.domain.object.Response;
+import by.x1ss.adapterservice.domain.object.ResponseList;
+import by.x1ss.adapterservice.web.controller.AdapterController;
+import by.x1ss.adapterservice.web.dto.ResponseListDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.client.match.MockRestRequestMatchers;
 import org.springframework.test.web.client.response.MockRestResponseCreators;
@@ -40,7 +42,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @RunWith(MockitoJUnitRunner.class)
-class AdapterServiceApplicationTests {
+class AdapterServiceTests {
     @Autowired
     private MockMvc mockMvc;
 
@@ -112,12 +114,12 @@ class AdapterServiceApplicationTests {
         mockServer.expect(once(), requestTo(matchesPattern(links.getConfirm() + ".*")))
                 .andExpect(MockRestRequestMatchers.method(HttpMethod.DELETE))
                 .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK));
-        mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/adapter/answer/juridical")
+        mockMvc.perform(MockMvcRequestBuilders.post("http://localhost:8080/adapter/answer/juridical")
                         .content("1234567890")
                         .contentType(MediaType.APPLICATION_XML)
                         .accept(MediaType.APPLICATION_XML))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().xml(xmlMapper.writeValueAsString(responseList)));
+                .andExpect(MockMvcResultMatchers.content().xml(xmlMapper.writeValueAsString(new ResponseListDTO(responseList))));
         mockServer.verify();
     }
 
@@ -165,12 +167,12 @@ class AdapterServiceApplicationTests {
         mockServer.expect(once(), requestTo(matchesPattern(links.getConfirm() + ".*")))
                 .andExpect(MockRestRequestMatchers.method(HttpMethod.DELETE))
                 .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK));
-        mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/adapter/answer/juridical")
+        mockMvc.perform(MockMvcRequestBuilders.post("http://localhost:8080/adapter/answer/juridical")
                         .content("1234567890")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().json(objectMapper.writeValueAsString(responseList)));
+                .andExpect(MockMvcResultMatchers.content().json(objectMapper.writeValueAsString(new ResponseListDTO(responseList))));
         mockServer.verify();
     }
 
@@ -206,12 +208,12 @@ class AdapterServiceApplicationTests {
         mockServer.expect(once(), requestTo(matchesPattern(links.getConfirm() + ".*")))
                 .andExpect(MockRestRequestMatchers.method(HttpMethod.DELETE))
                 .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK));
-        mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/adapter/answer/physical")
+        mockMvc.perform(MockMvcRequestBuilders.post("http://localhost:8080/adapter/answer/physical")
                         .content("А111АА00")
                         .contentType(MediaType.APPLICATION_XML)
                         .accept(MediaType.APPLICATION_XML))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().xml(xmlMapper.writeValueAsString(responseList)));
+                .andExpect(MockMvcResultMatchers.content().xml(xmlMapper.writeValueAsString(new ResponseListDTO(responseList))));
     }
 
     @Test
@@ -246,12 +248,12 @@ class AdapterServiceApplicationTests {
         mockServer.expect(once(), requestTo(matchesPattern(links.getConfirm() + ".*")))
                 .andExpect(MockRestRequestMatchers.method(HttpMethod.DELETE))
                 .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK));
-        mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/adapter/answer/physical")
+        mockMvc.perform(MockMvcRequestBuilders.post("http://localhost:8080/adapter/answer/physical")
                         .content("А111АА00")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().json(objectMapper.writeValueAsString(responseList)));
+                .andExpect(MockMvcResultMatchers.content().json(objectMapper.writeValueAsString(new ResponseListDTO(responseList))));
     }
 
     @Test
@@ -259,7 +261,7 @@ class AdapterServiceApplicationTests {
         mockServer.expect(once(), requestTo(links.getStatus()))
                 .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
                 .andRespond(MockRestResponseCreators.withStatus(HttpStatus.SERVICE_UNAVAILABLE));
-        mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/adapter/answer/physical")
+        mockMvc.perform(MockMvcRequestBuilders.post("http://localhost:8080/adapter/answer/physical")
                         .content("А111АА00")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -279,7 +281,7 @@ class AdapterServiceApplicationTests {
         mockServer.expect(once(), requestTo(matchesPattern(links.getGetAnswer() + ".*")))
                 .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
                 .andRespond(MockRestResponseCreators.withStatus(HttpStatus.NO_CONTENT));
-        mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/adapter/answer/physical")
+        mockMvc.perform(MockMvcRequestBuilders.post("http://localhost:8080/adapter/answer/physical")
                         .content("А111АА00")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -302,7 +304,7 @@ class AdapterServiceApplicationTests {
                         .build()
         );
         responseList.setResponses(responses);
-        mockServer.expect(once(), requestTo(links.getStatus()))
+        mockServer.expect(ExpectedCount.times(3),requestTo(links.getStatus()))
                 .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
                 .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -340,7 +342,7 @@ class AdapterServiceApplicationTests {
                         .build()
         );
         responseList.setResponses(responses);
-        mockServer.expect(once(), requestTo(links.getStatus()))
+        mockServer.expect(ExpectedCount.times(3),requestTo(links.getStatus()))
                 .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
                 .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
                         .contentType(MediaType.APPLICATION_JSON)

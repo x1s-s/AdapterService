@@ -5,15 +5,11 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.context.annotation.Profile;
 
+@Profile("test")
 @Configuration
-public class AdapterConfiguration {
-    @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
-    }
-
+public class MapperConfiguration {
     @Bean
     public XmlMapper xmlMapper() {
         XmlMapper xmlMapper = new XmlMapper();
@@ -29,5 +25,4 @@ public class AdapterConfiguration {
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         return objectMapper;
     }
-
 }

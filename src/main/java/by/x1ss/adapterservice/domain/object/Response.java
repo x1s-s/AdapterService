@@ -1,6 +1,5 @@
-package by.x1ss.adapterservice.model;
+package by.x1ss.adapterservice.domain.object;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -17,6 +16,5 @@ public class Response {
     private double resolutionNumber;
     private LocalDate resolutionDate;
     private String administrativeCode;
-    @JsonIgnore
     private Boolean isJuridical;
 }

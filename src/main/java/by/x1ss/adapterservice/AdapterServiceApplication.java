@@ -1,6 +1,6 @@
 package by.x1ss.adapterservice;
 
-import by.x1ss.adapterservice.configuration.LinksToOtherService;
+import by.x1ss.adapterservice.domain.logic.interactionWithSMEV.service.configuration.propertiesConfig.LinksToOtherService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

@@ -1,5 +1,7 @@
-package by.x1ss.adapterservice.exception;
+package by.x1ss.adapterservice.web.exceptionHandler;
 
+import by.x1ss.adapterservice.domain.logic.interactionWithSMEV.service.exception.NotFoundInSmevException;
+import by.x1ss.adapterservice.domain.logic.interactionWithSMEV.service.exception.SmevEcxeption;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;

@@ -1,4 +1,4 @@
-package by.x1ss.adapterservice.configuration;
+package by.x1ss.adapterservice.domain.logic.interactionWithSMEV.service.configuration.propertiesConfig;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

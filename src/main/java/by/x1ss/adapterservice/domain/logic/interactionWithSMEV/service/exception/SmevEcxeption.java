@@ -1,4 +1,4 @@
-package by.x1ss.adapterservice.exception;
+package by.x1ss.adapterservice.domain.logic.interactionWithSMEV.service.exception;
 
 import org.springframework.http.HttpStatus;
 

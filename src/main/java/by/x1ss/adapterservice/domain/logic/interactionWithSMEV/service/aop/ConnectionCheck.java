@@ -1,7 +1,7 @@
-package by.x1ss.adapterservice.aop;
+package by.x1ss.adapterservice.domain.logic.interactionWithSMEV.service.aop;
 
-import by.x1ss.adapterservice.configuration.LinksToOtherService;
-import by.x1ss.adapterservice.exception.SmevEcxeption;
+import by.x1ss.adapterservice.domain.logic.interactionWithSMEV.service.configuration.propertiesConfig.LinksToOtherService;
+import by.x1ss.adapterservice.domain.logic.interactionWithSMEV.service.exception.SmevEcxeption;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -24,7 +24,7 @@ public class ConnectionCheck {
         this.links = links;
     }
 
-    @Pointcut("@annotation(ConnectionCheckAnnotation)")
+    @Pointcut("@annotation(by.x1ss.adapterservice.domain.logic.interactionWithSMEV.service.aop.ConnectionCheckAnnotation)")
     public void callCheckConnectionAnnotation() {
     }
 
