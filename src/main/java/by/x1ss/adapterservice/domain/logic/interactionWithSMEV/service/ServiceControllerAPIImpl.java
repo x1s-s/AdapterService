@@ -31,7 +31,7 @@ public class ServiceControllerAPIImpl implements ServiceControllerAPI {
 
     //disclaimer! annotation only for learn how to use AOP
     @ConnectionCheckAnnotation
-    public ResponseList getAnswer( String clientIdentifier, Boolean isJuridical){
+    public ResponseList getAnswer(String clientIdentifier, Boolean isJuridical){
         Request request = new Request(clientIdentifier, isJuridical);
         log.info("AdapterService got request {}", request);
         ResponseEntity<Object> responseStatus = restTemplate.postForEntity(links.getRequest(), request, Object.class);
